@@ -347,10 +347,9 @@ public:
   void checkAllReactMethods(const CXXRecordDecl *SrcState) {
     unsigned i = 0;
     IdentifierInfo &II = ASTCtx->Idents.get("react");
-    DeclContext::lookup_const_result ReactRes =
+    DeclContext::lookup_result ReactRes =
         SrcState->lookup(DeclarationName(&II));
-    DeclContext::lookup_const_result::iterator it, end;
-    for (it = ReactRes.begin(), end = ReactRes.end(); it != end; ++it, ++i) {
+    for (auto it = ReactRes.begin(), end = ReactRes.end(); it != end; ++it, ++i) {
       if (i >= reactMethodInReactions.size() ||
           reactMethodInReactions[i] == false) {
         CXXMethodDecl *React = dyn_cast<CXXMethodDecl>(*it);
@@ -367,10 +366,9 @@ public:
     IdentifierInfo &II = ASTCtx->Idents.get("react");
     // TODO: Lookup for react even in base classes - probably by using
     // Sema::LookupQualifiedName()
-    DeclContext::lookup_const_result ReactRes =
+    DeclContext::lookup_result ReactRes =
         SrcState->lookup(DeclarationName(&II));
-    DeclContext::lookup_const_result::iterator it, end;
-    for (it = ReactRes.begin(), end = ReactRes.end(); it != end; ++it) {
+    for (auto it = ReactRes.begin(), end = ReactRes.end(); it != end; ++it) {
       if (CXXMethodDecl *React = dyn_cast<CXXMethodDecl>(*it)) {
         if (React->getNumParams() >= 1) {
           const ParmVarDecl *p = React->getParamDecl(0);
@@ -563,9 +561,7 @@ public:
     // Sema::LookupQualifiedName()
     DeclContext::lookup_result Reactions =
         RecordDecl->lookup(DeclarationName(&II));
-    DeclContext::lookup_result::iterator it, end;
-    for (it = Reactions.begin(), end = Reactions.end(); it != end;
-         ++it, typedef_num++)
+    for (auto it = Reactions.begin(), end = Reactions.end(); it != end; ++it, typedef_num++)
       HandleReaction(*it, RecordDecl);
     if (typedef_num == 0) {
       Diag(RecordDecl->getLocStart(), diag_warning)
