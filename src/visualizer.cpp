@@ -279,7 +279,7 @@ public:
     } else if (E->getMemberNameInfo().getAsString() != "transit")
       return true;
     if (E->hasExplicitTemplateArgs()) {
-      const Type *DstStateType = E->getExplicitTemplateArgs()[0]
+      const Type *DstStateType = E->getTemplateArgs()[0]
                                      .getArgument()
                                      .getAsType()
                                      .getTypePtr();
