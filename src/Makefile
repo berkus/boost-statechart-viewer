@@ -10,7 +10,7 @@ LIBDIR ?= $(CURDIR)
 
 CLANG_LIBS := -lclangParse -lclangFrontend -lclangSerialization	\
  -lclangDriver -lclangCodeGen -lclangSema -lclangAnalysis	\
- -lclangAST -lclangLex -lclangBasic -lclangEdit
+ -lclangAST -lclangLex -lclangBasic -lclangEdit $(shell $(LLVM_CONFIG) --system-libs)
 
 ifneq (,$(filter 3.0,$(LLVM_VERSION))$(filter 3.1,$(LLVM_VERSION)))
 CLANG_LIBS += -lclangRewrite
