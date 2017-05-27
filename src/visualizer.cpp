@@ -635,11 +635,11 @@ public:
 
 class VisualizeStatechartAction : public PluginASTAction {
 protected:
-  ASTConsumer *CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
+  unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
     size_t dot = getCurrentFile().find_last_of('.');
-    std::string dest = getCurrentFile().substr(0, dot);
+    string dest = getCurrentFile().substr(0, dot);
     dest.append(".dot");
-    return new VisualizeStatechartConsumer(&CI.getASTContext(), dest,
+    return llvm::make_unique<VisualizeStatechartConsumer>(&CI.getASTContext(), dest,
                                            CI.getDiagnostics());
   }
 
