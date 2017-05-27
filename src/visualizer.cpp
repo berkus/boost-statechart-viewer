@@ -233,12 +233,11 @@ public:
 
 class MyCXXRecordDecl : public CXXRecordDecl {
   static bool FindBaseClassString(const CXXBaseSpecifier *Specifier,
-                                  CXXBasePath &Path, void *qualName) {
-    string qn(static_cast<const char *>(qualName));
+                                  CXXBasePath &Path, char const *qualName) {
     const RecordType *rt = Specifier->getType()->getAs<RecordType>();
     assert(rt);
     TagDecl *canon = rt->getDecl()->getCanonicalDecl();
-    return canon->getQualifiedNameAsString() == qn;
+    return canon->getQualifiedNameAsString() == string(qualName);
   }
 
 public:
@@ -247,11 +246,14 @@ public:
     CXXBasePaths Paths(/*FindAmbiguities=*/false, /*RecordPaths=*/!!Base,
                        /*DetectVirtual=*/false);
     Paths.setOrigin(const_cast<MyCXXRecordDecl *>(this));
-    if (!lookupInBases(&FindBaseClassString, const_cast<char *>(baseStr),
-                       Paths))
+    if (!lookupInBases([baseStr](const CXXBaseSpecifier *Specifier, CXXBasePath &Path) -> bool {
+        return FindBaseClassString(Specifier, Path, baseStr);
+    }, Paths)) {
       return false;
-    if (Base)
+    }
+    if (Base) {
       *Base = Paths.front().back().Base;
+    }
     return true;
   }
 };
