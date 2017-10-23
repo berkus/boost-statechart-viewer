@@ -229,7 +229,7 @@ namespace Model
 	    f << indent_dec << "}\n";
 	}
     };
-};
+}
 
 
 class MyCXXRecordDecl : public CXXRecordDecl
@@ -249,8 +249,18 @@ public:
     bool isDerivedFrom(const char *baseStr, CXXBaseSpecifier const **Base = 0) const {
 	CXXBasePaths Paths(/*FindAmbiguities=*/false, /*RecordPaths=*/!!Base, /*DetectVirtual=*/false);
 	Paths.setOrigin(const_cast<MyCXXRecordDecl*>(this));
-	if (!lookupInBases(&FindBaseClassString, const_cast<char*>(baseStr), Paths))
+    string qn(baseStr);
+	if (!lookupInBases(
+                [qn](const CXXBaseSpecifier *Specifier, CXXBasePath &Path) -> bool {
+                    const RecordType *rt = Specifier->getType()->getAs<RecordType>();
+                    assert(rt);
+                    TagDecl *canon = rt->getDecl()->getCanonicalDecl();
+                    return canon->getQualifiedNameAsString() == qn;
+                }, Paths) )
+    {
 	    return false;
+    }
+
 	if (Base)
 	    *Base = Paths.front().back().Base;
 	return true;
@@ -276,7 +286,7 @@ public:
 	} else if (E->getMemberNameInfo().getAsString() != "transit")
 	    return true;
 	if (E->hasExplicitTemplateArgs()) {
-	    const Type *DstStateType = E->getExplicitTemplateArgs()[0].getArgument().getAsType().getTypePtr();
+	    const Type *DstStateType = E->getTemplateArgs()[0].getArgument().getAsType().getTypePtr();
 	    CXXRecordDecl *DstState = DstStateType->getAsCXXRecordDecl();
 	    CXXRecordDecl *Event = EventType->getAsCXXRecordDecl();
 	    Model::Transition *T = new Model::Transition(SrcState->getName(), DstState->getName(), Event->getName());
@@ -335,9 +345,8 @@ public:
     {
 	unsigned i = 0;
 	IdentifierInfo& II = ASTCtx->Idents.get("react");
-	DeclContext::lookup_const_result ReactRes = SrcState->lookup(DeclarationName(&II));
-	DeclContext::lookup_const_result::iterator it, end;
-	for (it = ReactRes.begin(), end=ReactRes.end(); it != end; ++it, ++i) {
+	auto ReactRes = SrcState->lookup(DeclarationName(&II));
+	for (auto it = ReactRes.begin(), end=ReactRes.end(); it != end; ++it, ++i) {
 	    if (i >= reactMethodInReactions.size() || reactMethodInReactions[i] == false) {
 		CXXMethodDecl *React = dyn_cast<CXXMethodDecl>(*it);
 		Diag(React->getParamDecl(0)->getLocStart(), diag_warning)
@@ -351,9 +360,8 @@ public:
 	unsigned i = 0;
 	IdentifierInfo& II = ASTCtx->Idents.get("react");
 	// TODO: Lookup for react even in base classes - probably by using Sema::LookupQualifiedName()
-	DeclContext::lookup_const_result ReactRes = SrcState->lookup(DeclarationName(&II));
-	DeclContext::lookup_const_result::iterator it, end;
-	for (it = ReactRes.begin(), end=ReactRes.end(); it != end; ++it) {
+	auto  ReactRes = SrcState->lookup(DeclarationName(&II));
+	for (auto it = ReactRes.begin(), end=ReactRes.end(); it != end; ++it) {
 	    if (CXXMethodDecl *React = dyn_cast<CXXMethodDecl>(*it)) {
 		if (React->getNumParams() >= 1) {
 		    const ParmVarDecl *p = React->getParamDecl(0);
@@ -514,9 +522,8 @@ public:
 
 	IdentifierInfo& II = ASTCtx->Idents.get("reactions");
 	// TODO: Lookup for reactions even in base classes - probably by using Sema::LookupQualifiedName()
-	DeclContext::lookup_result Reactions = RecordDecl->lookup(DeclarationName(&II));
-	DeclContext::lookup_result::iterator it, end;
-	for (it = Reactions.begin(), end = Reactions.end(); it != end; ++it, typedef_num++)
+	auto Reactions = RecordDecl->lookup(DeclarationName(&II));
+	for (auto it = Reactions.begin(), end = Reactions.end(); it != end; ++it, typedef_num++)
 	    HandleReaction(*it, RecordDecl);
 	if(typedef_num == 0) {
 	    Diag(RecordDecl->getLocStart(), diag_warning)
@@ -587,11 +594,11 @@ public:
 class VisualizeStatechartAction : public PluginASTAction
 {
 protected:
-  ASTConsumer *CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
+    std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
     size_t dot = getCurrentFile().find_last_of('.');
     std::string dest = getCurrentFile().substr(0, dot);
     dest.append(".dot");
-    return new VisualizeStatechartConsumer(&CI.getASTContext(), dest, CI.getDiagnostics());
+    return std::unique_ptr<ASTConsumer>( new VisualizeStatechartConsumer(&CI.getASTContext(), dest, CI.getDiagnostics()) );
   }
 
   bool ParseArgs(const CompilerInstance &CI,
