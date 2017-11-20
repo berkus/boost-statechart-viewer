@@ -33,7 +33,7 @@ repositories and compile it.
 
 On Debian/Ubuntu the dependencies can be installed with:
 
-    sudo apt-get install clang-3.5 libclang-3.5-dev build-essential graphviz
+    sudo apt-get install clang-5.0 libclang-5.0-dev build-essential graphviz
 
 To compile the the plugin, simply run:
 
@@ -42,9 +42,9 @@ To compile the the plugin, simply run:
 If you want to use a different clang/llvm version, run configure
 before running make. For example:
 
-  LLVM_CONFIG=llvm-config-3.5 ./configure
+  LLVM_CONFIG=llvm-config-5.0 ./configure
 
-This program was tested with LLVM/Clang 3.5.
+This program was tested with LLVM/Clang 5.0.
 
 Reporting bugs
 --------------
