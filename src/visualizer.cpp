@@ -504,7 +504,7 @@ public:
 	    }
 	    c->add(state);
 	}
-	//TODO support more innitial states
+	//TODO support more initial states
 	TemplateArgumentLoc Loc;
 	if (MyCXXRecordDecl *InnerInitialState =
 	    static_cast<MyCXXRecordDecl*>(getTemplateArgDeclOfBase(Base, 2, Loc, true))) {
@@ -550,7 +550,7 @@ public:
 	if (Declaration->getQualifiedNameAsString() == "boost::statechart::state" ||
 	    Declaration->getQualifiedNameAsString() == "TimedState" ||
 	    Declaration->getQualifiedNameAsString() == "TimedSimpleState" ||
-	    Declaration->getQualifiedNameAsString() == "boost::statechart::assynchronous_state_machine")
+	    Declaration->getQualifiedNameAsString() == "boost::statechart::asynchronous_state_machine")
 	    return true; // This is an "abstract class" not a real state or real state machine
 
 	MyCXXRecordDecl *RecordDecl = static_cast<MyCXXRecordDecl*>(Declaration);
